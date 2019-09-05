@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qwh.stu_springboot_demo.dao.RoleMapper" >
+
+
+    <insert id="insert" parameterType="com.qwh.stu_springboot_demo.domain.Role" >
+        insert into role(
+        <if test="id != null and id!=''" >
+            id
+        </if>
+        <if test="role_name != null and role_name!=''" >
+            ,role_name
+        </if>
+        <if test="user_id != null and user_id!=''" >
+            ,user_id
+        </if>
+        )
+
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+            <if test="id != null and id!=''" >
+                #{id,jdbcType=INTEGER}
+            </if>
+            <if test="role_name != null and role_name!=''" >
+                ,#{role_name,jdbcType=VARCHAR }
+            </if>
+            <if test="user_id != null and user_id!=''" >
+                ,#{user_id,jdbcType=INTEGER }
+            </if>
+
+        </trim>
+    </insert>
+
+    <sql id="Base_Column_List" >
+    id, role_name,user_id
+    </sql>
+
+    <select id="select" resultType="com.qwh.stu_springboot_demo.domain.Role" parameterType="java.lang.Integer" >
+        select
+        <include refid="Base_Column_List" />
+        from role
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+
+
+    <delete id="delete" parameterType="java.lang.Integer" >
+    delete from role
+    where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <update id="update" parameterType="com.qwh.stu_springboot_demo.domain.Role" >
+        update role
+        <set >
+            <if test="role_name != null and role_name!='' " >
+                role_name = #{role_name,jdbcType=VARCHAR},
+            </if>
+            <if test="user_id != null and user_id !='' " >
+                user_id  = #{user_id ,jdbcType=VARCHAR},
+            </if>
+
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <select id="getRoleByUserName" resultType="com.qwh.stu_springboot_demo.domain.Role" parameterType="java.lang.String" >
+        select
+        <include refid="Base_Column_List" />
+        from role
+        where  user_id=(select id from user where my_name=#{name})
+    </select>
+
+
+</mapper>

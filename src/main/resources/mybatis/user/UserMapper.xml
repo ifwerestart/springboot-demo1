@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.qwh.stu_springboot_demo.dao.UserMapper" >
+
+    <!-- 当建立的实体类的属性名字跟数据库的表段名不一致的时候，手动建立的映射关系 -->
+    <resultMap id="BaseResultMap" type="com.qwh.stu_springboot_demo.domain.User" >
+        <!-- id：指定查询列中的唯 一标识，表中的唯 一标识，如果有多个列组成唯一标识，配置多个id
+           column：表的唯 一标识列
+           property：表的唯 一标识列所映射到实体类中哪个属性
+
+    <collection property="Java属性名" ofType="另一Java类名" javaType="java.util.ArrayList"
+    column="关联主键ID(用于嵌套查询SQL语句传入参数，多个用逗号分开)" select="另一个select映射SQL的ID"/>
+
+       -->
+        <id column="id" property="id" jdbcType="INTEGER" />
+        <result column="my_name" property="name" jdbcType="VARCHAR" />
+        <result column="password" property="password" jdbcType="VARCHAR" />
+        <result column="sal" property="sal" jdbcType="DOUBLE" />
+    </resultMap>
+
+    <!--
+    selectKey  会将 SELECT LAST_INSERT_ID()的结果放入到传入的model的主键里面，
+         keyProperty 对应的model中的主键的属性名，这里是 user 中的id，因为它跟数据库的主键对应
+         order AFTER 表示 SELECT LAST_INSERT_ID() 在insert执行之后执行,多用于 自增主键，
+         order BEFORE 表示 SELECT LAST_INSERT_ID() 在insert执行之前执行，这样的话就拿不到主键了，这种适合那种主键不是自增的类型
+         resultType 主键类型
+     -->
+    <insert id="insertUser" parameterType="com.qwh.stu_springboot_demo.domain.User">
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into user (id, my_name, password,sal)
+        values (#{id,jdbcType=INTEGER}, #{name,jdbcType=VARCHAR},#{password,jdbcType=VARCHAR}, #{sal,jdbcType=DOUBLE} )
+    </insert>
+
+    <insert id="insertSelective" parameterType="com.qwh.stu_springboot_demo.domain.User" >
+        <selectKey resultType="java.lang.Integer" keyProperty="id" order="AFTER">
+            SELECT LAST_INSERT_ID()
+        </selectKey>
+        insert into user(
+            id
+        <if test="name != null and name!=''" >
+            ,my_name
+        </if>
+        <if test="password != null and password!=''" >
+            ,password
+        </if>
+        <if test="sal != null and sal!=''" >
+            ,sal
+        </if>
+        )
+
+        <trim prefix="values (" suffix=")" suffixOverrides="," >
+
+            #{id,jdbcType=INTEGER},
+
+            <if test="name != null" >
+                #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null" >
+                #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="sal != null" >
+                #{sal,jdbcType=DOUBLE},
+            </if>
+        </trim>
+    </insert>
+
+    <sql id="Base_Column_List" >
+    id, my_name, password,sal
+    </sql>
+
+    <select id="findUser" resultMap="BaseResultMap" parameterType="java.lang.Integer" >
+        select
+        <include refid="Base_Column_List" />
+        from user
+        where id = #{id,jdbcType=INTEGER}
+    </select>
+
+    <select id="selectUserByName" resultMap="BaseResultMap" parameterType="java.lang.String" >
+        select
+        <include refid="Base_Column_List" />
+        from user
+        where my_name = #{name,jdbcType=VARCHAR}
+    </select>
+
+    <select id="findAll" resultMap="BaseResultMap"  >
+        select
+        <include refid="Base_Column_List" />
+        from user
+    </select>
+
+    <delete id="deleteUser" parameterType="java.lang.Integer" >
+    delete from user
+    where id = #{id,jdbcType=INTEGER}
+    </delete>
+
+    <update id="updateSelective" parameterType="com.qwh.stu_springboot_demo.domain.User" >
+        update user
+        <set >
+            <if test="name != null and name!='' " >
+                my_name = #{name,jdbcType=VARCHAR},
+            </if>
+            <if test="password != null and password!='' " >
+                password = #{password,jdbcType=VARCHAR},
+            </if>
+            <if test="sal != null and sal!='' " >
+                sal = #{sal,jdbcType=DOUBLE},
+            </if>
+        </set>
+        where id = #{id,jdbcType=INTEGER}
+    </update>
+
+    <update id="updateUser" parameterType="com.qwh.stu_springboot_demo.domain.User" >
+    update user
+    set my_name = #{name,jdbcType=VARCHAR},
+      password = #{password,jdbcType=VARCHAR},
+      sal = #{sal,jdbcType=DOUBLE}
+    where id = #{id,jdbcType=INTEGER}
+   </update>
+
+    <select id="getAllQXByUserName" resultType="java.util.Map" parameterType="java.lang.String"  >
+        select
+        user.id, user.my_name, role.role_name,  permission.permission
+        from user,role,permission
+        where user.id=role.user_id and role.id=permission.role_id and user.my_name=#{name}
+    </select>
+
+<!--
+在操作user表相关类中 增加查询 List<Role> getRoleByUserName(String username)
+在操作role表相关类中 增加查询 List<Permission> getPermissionByRoleId(int role_id)
+-->
+
+</mapper>
